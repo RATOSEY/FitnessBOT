@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { color: var(--tg-theme-text-color); background: var(--tg-theme-bg-color); font-family: sans-serif; padding: 20px; }
+        button { background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; padding: 10px 20px; border-radius: 8px; width: 100%; cursor: pointer; }
+        input { width: 90%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        .chart-container { margin-top: 20px; height: 200px; }
+    </style>
+</head>
+<body>
+    <h2>Мій Прогрес 📊</h2>
+    <div class="chart-container">
+        <canvas id="caloriesChart"></canvas>
+    </div>
+
+    <h3>Додати їжу</h3>
+    <input type="text" id="foodItem" placeholder="Що з'їли?">
+    <input type="number" id="calories" placeholder="Ккал">
+    <button onclick="sendData()">Зберегти в Щоденник</button>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Розгортає додаток на весь екран
+
+        // Малюємо тестовий графік (потім підключимо реальні дані)
+        const ctx = document.getElementById('caloriesChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт'],
+                datasets: [{
+                    label: 'Калорії',
+                    data: [2100, 2400, 1900, 2800, 2300],
+                    borderColor: '#3390ec',
+                    tension: 0.4
+                }]
+            }
+        });
+
+        async function sendData() {
+            const food = document.getElementById('foodItem').value;
+            const kcal = document.getElementById('calories').value;
+
+            // Відправляємо дані в n8n Webhook
+            const response = await fetch('https://jalisa-uncrude-olene.ngrok-free.dev/webhook-test/app-action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    chat_id: tg.initDataUnsafe.user.id,
+                    food: food, 
+                    calories: kcal 
+                })
+            });
+
+            if (response.ok) {
+                tg.showAlert("Дані збережено! 💪");
+            }
+        }
+    </script>
+</body>
+</html>

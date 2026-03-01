@@ -31,9 +31,9 @@
 
         /* Стилі для лайв-списку БЖУ */
         .food-item { background: var(--bg-color); padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .food-item-title { font-weight: bold; margin-bottom: 8px; font-size: 15px; }
+        .food-item-title { font-weight: bold; margin-bottom: 8px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
         .food-item-macros { display: flex; justify-content: space-between; font-size: 12px; }
-        .macro-badge { background: var(--secondary-bg); padding: 4px 8px; border-radius: 6px; font-weight: 500; color: var(--text-color); }
+        .macro-badge { padding: 4px 8px; border-radius: 6px; font-weight: bold; }
         .macro-badge.protein { color: #e53935; background: rgba(229, 57, 53, 0.1); }
         .macro-badge.fat { color: #fb8c00; background: rgba(251, 140, 0, 0.1); }
         .macro-badge.carb { color: #1e88e5; background: rgba(30, 136, 229, 0.1); }
@@ -56,12 +56,26 @@
     <div id="tab-profile" class="tab-content">
         <div class="card">
             <h3>👤 Мій Профіль</h3>
-            <label>Ім'я</label><input type="text" id="profile-name">
-            <label>Вік (років)</label><input type="number" id="profile-age">
+            <p style="color: var(--hint-color); font-size: 14px; margin-bottom: 15px;">Ці дані потрібні ШІ для точного розрахунку вашої норми.</p>
+            
+            <label>Ім'я</label>
+            <input type="text" id="profile-name" placeholder="Ваше ім'я">
+            
+            <label>Вік (років)</label>
+            <input type="number" id="profile-age" placeholder="Наприклад: 30">
+            
             <label>Стать</label>
-            <select id="profile-gender"><option value="Чоловіча">Чоловіча</option><option value="Жіноча">Жіноча</option></select>
-            <label>Вага (кг)</label><input type="number" id="profile-weight">
-            <label>Зріст (см)</label><input type="number" id="profile-height">
+            <select id="profile-gender">
+                <option value="Чоловіча">Чоловіча</option>
+                <option value="Жіноча">Жіноча</option>
+            </select>
+            
+            <label>Вага (кг)</label>
+            <input type="number" id="profile-weight" placeholder="Наприклад: 75">
+            
+            <label>Зріст (см)</label>
+            <input type="number" id="profile-height" placeholder="Наприклад: 180">
+            
             <button class="primary-btn" onclick="saveProfile()">Зберегти профіль</button>
         </div>
     </div>
@@ -89,7 +103,11 @@
     </div>
 
     <div id="tab-tips" class="tab-content">
-        <div class="card"><h3>💡 Порада дня</h3><p>Пийте більше води!</p></div>
+        <div class="card">
+            <h3>💡 Порада дня</h3>
+            <p>Пийте більше води! Норма для дорослої людини - близько 30 мл на 1 кг ваги.</p>
+            <button class="primary-btn" style="background: transparent; color: var(--button-color); border: 2px solid var(--button-color);">Отримати нову пораду</button>
+        </div>
     </div>
 
     <div class="bottom-nav">
@@ -101,14 +119,16 @@
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        tg.expand(); // Розгортаємо додаток на весь екран
 
+        // Підтягуємо ім'я з Телеграму
         if (tg.initDataUnsafe.user) {
             const firstName = tg.initDataUnsafe.user.first_name;
             document.getElementById('user-name').innerText = firstName;
             document.getElementById('profile-name').value = firstName;
         }
 
+        // Логіка перемикання вкладок
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -116,10 +136,12 @@
             element.classList.add('active');
         }
 
-        // ВАЖЛИВО: Вставте ваш Production URL сюди!
-        const webhookUrl = 'ВАШ_PRODUCTION_URL_З_N8N'; 
+        // ==========================================
+        // ВАЖЛИВО: ВСТАВТЕ ВАШ URL З N8N СЮДИ 👇
+        const webhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook-test/app-action'; 
+        // ==========================================
 
-        // Відправка Їжі та отримання БЖУ
+        // 1. Відправка Їжі та отримання БЖУ
         async function sendToN8N() {
             const foodInput = document.getElementById('food').value;
             const btn = document.querySelector('#tab-food .primary-btn');
@@ -140,44 +162,78 @@
                 });
                 
                 if (response.ok) { 
-                    // Отримуємо відповідь від n8n
                     const data = await response.json(); 
                     
                     document.getElementById('food').value = '';
-                    
-                    // Показуємо блок зі списком, якщо він був прихований
                     document.getElementById('macros-container').style.display = 'block';
                     
-                    // Створюємо нову картку з їжею
                     const list = document.getElementById('food-list');
                     const newItem = document.createElement('div');
                     newItem.className = 'food-item';
                     
-                    // Якщо n8n ще не налаштований повертати БЖУ, ставимо знаки питання
-                    const itemName = data.foodName || foodInput; // Назва від ШІ або те, що ввів юзер
+                    // Значення з n8n (або знаки питання, якщо даних немає)
+                    const itemName = data.foodName || foodInput; 
                     const itemKcal = data.kcal || "?";
                     const p = data.protein || "?";
                     const f = data.fat || "?";
                     const c = data.carbs || "?";
 
                     newItem.innerHTML = `
-                        <div class="food-item-title">${itemName} <span style="float:right; color: var(--button-color);">${itemKcal} ккал</span></div>
+                        <div class="food-item-title">
+                            <span>${itemName}</span> 
+                            <span style="color: var(--button-color);">${itemKcal} ккал</span>
+                        </div>
                         <div class="food-item-macros">
                             <span class="macro-badge protein">Б: ${p}г</span>
                             <span class="macro-badge fat">Ж: ${f}г</span>
                             <span class="macro-badge carb">В: ${c}г</span>
                         </div>
                     `;
-                    // Додаємо нову страву на самий верх списку
-                    list.insertBefore(newItem, list.firstChild);
-                    
+                    list.insertBefore(newItem, list.firstChild); // Додаємо наверх списку
+                } else {
+                    tg.showAlert("Помилка на сервері n8n");
                 }
             } catch (e) { tg.showAlert("Помилка: " + e.message); } 
             finally { btn.innerText = 'Відправити ШІ 🪄'; }
         }
 
+        // 2. Збереження Профілю
         async function saveProfile() {
-            // ... (Код збереження профілю залишився без змін)
+            const name = document.getElementById('profile-name').value;
+            const age = document.getElementById('profile-age').value;
+            const gender = document.getElementById('profile-gender').value;
+            const weight = document.getElementById('profile-weight').value;
+            const height = document.getElementById('profile-height').value;
+            const btn = document.querySelector('#tab-profile .primary-btn');
+
+            if(!age || !weight || !height) {
+                tg.showAlert("⚠️ Будь ласка, заповніть всі поля: вік, вага та зріст!");
+                return;
+            }
+
+            btn.innerText = 'Збереження... ⏳';
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'save_profile',
+                        chat_id: tg.initDataUnsafe.user?.id || 12345,
+                        name: name,
+                        age: age,
+                        gender: gender,
+                        weight: weight,
+                        height: height
+                    })
+                });
+                if (response.ok) { 
+                    tg.showAlert("✅ Ваш профіль успішно оновлено!"); 
+                } else {
+                    tg.showAlert("Помилка при збереженні профілю");
+                }
+            } catch (e) { tg.showAlert("Помилка: " + e.message); } 
+            finally { btn.innerText = 'Зберегти профіль'; }
         }
     </script>
 </body>

@@ -138,16 +138,13 @@
             document.getElementById('user-name').innerText = firstName;
             document.getElementById('profile-name').value = firstName;
 
-          // ЗАВАНТАЖЕННЯ ДАНИХ З БАЗИ POSTGRES (Тепер через POST!)
+          // ЗАВАНТАЖЕННЯ ДАНИХ З БАЗИ POSTGRES (Простий POST-запит)
             fetch(getProfileWebhookUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ chat_id: userId }) // Передаємо ID в тілі запиту
+                // Ми видалили headers, щоб браузер не робив перевірку OPTIONS!
+                body: JSON.stringify({ chat_id: userId }) 
             })
                 .then(response => {
-                    // Перевіряємо, чи відповідь дійсно у форматі JSON
                     if (!response.ok) throw new Error("Помилка мережі");
                     return response.json();
                 })
@@ -268,6 +265,7 @@
     </script>
 </body>
 </html>
+
 
 
 

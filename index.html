@@ -138,11 +138,10 @@
             document.getElementById('user-name').innerText = firstName;
             document.getElementById('profile-name').value = firstName;
 
-          // ЗАВАНТАЖЕННЯ ДАНИХ З БАЗИ POSTGRES (Простий POST-запит)
-            fetch(getProfileWebhookUrl, {
-                method: 'POST',
-                // Ми видалили headers, щоб браузер не робив перевірку OPTIONS!
-                body: JSON.stringify({ chat_id: userId }) 
+         // ЗАВАНТАЖЕННЯ ДАНИХ З БАЗИ POSTGRES (Бронебійний варіант)
+            // Ми передаємо chat_id в посиланні, але використовуємо POST для обходу ngrok
+            fetch(`${getProfileWebhookUrl}?chat_id=${userId}`, {
+                method: 'POST'
             })
                 .then(response => {
                     if (!response.ok) throw new Error("Помилка мережі");
@@ -265,6 +264,7 @@
     </script>
 </body>
 </html>
+
 
 
 

@@ -61,13 +61,31 @@
         .nav-item i { font-size: 24px; } /* Розмір іконок в меню */
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Анімація обертання для іконок завантаження */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .ph-spinner-gap { animation: spin 1s linear infinite; }
+
+        @keyframes popIn { to { transform: scale(1); } }
     </style>
 </head>
 <body>
-
+<div id="success-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(3px);">
+        <div style="background: var(--secondary-bg); padding: 25px; border-radius: 24px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); transform: scale(0.8); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+            <img id="success-gif" src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjk2bnZmYnUybWlicXdoZXlvazFsdWVxNmsxOGp6dnNpYm1zZGJ3MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/G6TgcESZt8FFk8XV7K/giphy.gif" style="width: 130px; height: 130px; object-fit: cover; border-radius: 16px; margin-bottom: 15px;">
+            
+            <h3 id="success-text" style="margin: 0; color: var(--text-color); font-size: 20px;">Записано!</h3>
+        </div>
+    </div>
     <div class="header">
-        <h1><i class="ph ph-hand-waving"></i> Привіт, <span id="user-name">Друже</span>!</h1>
-        <p>Готовий ставати кращим сьогодні?</p>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <img id="user-avatar" src="https://ui-avatars.com/api/?name=User&background=random" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid var(--button-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            
+            <div>
+                <h1 style="font-size: 22px; margin: 0;">Привіт, <span id="user-name">Друже</span>! 👋</h1>
+                <p style="margin: 4px 0 0 0; color: var(--hint-color); font-size: 13px;">Готовий ставати кращим сьогодні?</p>
+            </div>
+        </div>
     </div>
 
     <div id="tab-profile" class="tab-content">
@@ -152,7 +170,11 @@
 
             document.getElementById('user-name').innerText = firstName;
             document.getElementById('profile-name').value = firstName;
-
+            
+            // НОВЕ: Підтягуємо аватарку, якщо вона є у користувача
+            if (tg.initDataUnsafe.user.photo_url) {
+                document.getElementById('user-avatar').src = tg.initDataUnsafe.user.photo_url;
+            }
             // ЗАВАНТАЖЕННЯ ПРОФІЛЮ
             fetch(`${getProfileWebhookUrl}?chat_id=${userId}`, { method: 'POST' })
                 .then(response => {
@@ -261,9 +283,13 @@
                     })
                 });
                 
-                if (response.ok) { 
+               if (response.ok) { 
                     document.getElementById('food').value = '';
                     loadFoodHistory(); 
+                    
+                    // ВИКЛИКАЄМО НАШУ ГІФКУ! 🔥
+                    showSuccessGif("Смачного! 🍎"); 
+                    
                 } else {
                     tg.showAlert("Помилка на сервері n8n");
                 }
@@ -307,7 +333,22 @@
                 }
             } catch (e) { tg.showAlert("Помилка: " + e.message); } 
             finally { btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Зберегти профіль'; }
+
+            // Функція показу Гіфки
+        function showSuccessGif(message) {
+            const popup = document.getElementById('success-popup');
+            document.getElementById('success-text').innerText = message;
+            
+            popup.style.display = 'flex'; // Показуємо вікно
+            tg.HapticFeedback.notificationOccurred('success'); // Додаємо вібрацію успіху на телефоні!
+            
+            // Ховаємо рівно через 2.5 секунди
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 2500);
+        }
         }
     </script>
 </body>
 </html>
+

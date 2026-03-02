@@ -147,9 +147,15 @@
                     if (!response.ok) throw new Error("Помилка мережі");
                     return response.json();
                 })
-                .then(data => {
-                    if (data && data.length > 0) {
-                        const profile = data[0];
+               .then(data => {
+                    // Виводимо дані в консоль, щоб бачити, що саме прийшло з бази
+                    console.log("Отримані дані з бази:", data);
+                    
+                    // Робимо код "всеїдним": якщо це масив - беремо перший елемент, якщо об'єкт - беремо його
+                    const profile = Array.isArray(data) ? data[0] : data;
+
+                    // Перевіряємо, чи профіль дійсно існує і чи є в ньому дані
+                    if (profile && Object.keys(profile).length > 0) {
                         if (profile.name) document.getElementById('profile-name').value = profile.name;
                         if (profile.age) document.getElementById('profile-age').value = profile.age;
                         if (profile.gender) document.getElementById('profile-gender').value = profile.gender;
@@ -264,6 +270,7 @@
     </script>
 </body>
 </html>
+
 
 
 

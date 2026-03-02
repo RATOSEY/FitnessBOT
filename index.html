@@ -20,13 +20,10 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; padding-bottom: 80px; }
         
         .header { padding: 25px 20px; background: var(--secondary-bg); border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; margin-bottom: 25px; }
-        .header h1 { margin: 0; font-size: 24px; display: flex; align-items: center; gap: 8px; }
-        .header p { margin: 5px 0 0 0; color: var(--hint-color); font-size: 14px; }
-
+        
         .tab-content { display: none; padding: 0 20px; animation: fadeIn 0.3s ease-in-out; }
         .tab-content.active { display: block; }
         
-        /* Оновлені картки: більше повітря, кругліші кути, м'яка рамка */
         .card { 
             background: var(--secondary-bg); 
             padding: 20px; 
@@ -44,45 +41,44 @@
         button.primary-btn { background: var(--button-color); color: var(--button-text); border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: opacity 0.2s; }
         button.primary-btn:active { opacity: 0.8; }
 
-        /* Оновлений список їжі */
         .food-item { background: var(--bg-color); padding: 15px; border-radius: 14px; margin-bottom: 12px; border: 1px solid rgba(153, 153, 153, 0.15); }
         .food-item-macros { display: flex; justify-content: space-between; font-size: 12px; margin-top: 12px; }
         
-        /* Бейджі у вигляді "пігулок" (прозорий фон, кольорова рамка) */
         .macro-badge { padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 11px; letter-spacing: 0.3px; }
         .macro-badge.protein { color: #e53935; border: 1px solid rgba(229, 57, 53, 0.4); }
         .macro-badge.fat { color: #fb8c00; border: 1px solid rgba(251, 140, 0, 0.4); }
         .macro-badge.carb { color: #1e88e5; border: 1px solid rgba(30, 136, 229, 0.4); }
 
-        /* Оновлене нижнє меню з іконками */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--secondary-bg); display: flex; justify-content: space-around; padding: 12px 0 20px 0; border-top: 1px solid rgba(153, 153, 153, 0.15); }
         .nav-item { text-align: center; font-size: 11px; color: var(--hint-color); cursor: pointer; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 500; transition: color 0.2s; }
         .nav-item.active { color: var(--button-color); font-weight: 600; }
-        .nav-item i { font-size: 24px; } /* Розмір іконок в меню */
+        .nav-item i { font-size: 24px; } 
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Анімація обертання для іконок завантаження */
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .ph-spinner-gap { animation: spin 1s linear infinite; }
-
-        @keyframes popIn { to { transform: scale(1); } }
+        
+        /* Анімація для Popup-вікна */
+        @keyframes popIn { 
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
-<div id="success-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(3px);">
-        <div style="background: var(--secondary-bg); padding: 25px; border-radius: 24px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); transform: scale(0.8); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
-            <img id="success-gif" src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjk2bnZmYnUybWlicXdoZXlvazFsdWVxNmsxOGp6dnNpYm1zZGJ3MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/G6TgcESZt8FFk8XV7K/giphy.gif" style="width: 130px; height: 130px; object-fit: cover; border-radius: 16px; margin-bottom: 15px;">
-            
+
+    <div id="success-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(3px);">
+        <div style="background: var(--secondary-bg); padding: 25px; border-radius: 24px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+            <img id="success-gif" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWk3d21tZ2F1bnZ0azM2eGNqaDI3NW4yMm8wOW9uZXFzNHV4aHcwZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/artj92V8o75VPL7AeQ/giphy.gif" style="width: 140px; height: 140px; object-fit: cover; border-radius: 16px; margin-bottom: 15px;">
             <h3 id="success-text" style="margin: 0; color: var(--text-color); font-size: 20px;">Записано!</h3>
         </div>
     </div>
+
     <div class="header">
         <div style="display: flex; align-items: center; gap: 15px;">
             <img id="user-avatar" src="https://ui-avatars.com/api/?name=User&background=random" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid var(--button-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-            
             <div>
-                <h1 style="font-size: 22px; margin: 0;">Привіт, <span id="user-name">Друже</span>! 👋</h1>
+                <h1 style="font-size: 22px; margin: 0; display: flex; align-items: center; gap: 8px;">Привіт, <span id="user-name">Друже</span>! 👋</h1>
                 <p style="margin: 4px 0 0 0; color: var(--hint-color); font-size: 13px;">Готовий ставати кращим сьогодні?</p>
             </div>
         </div>
@@ -171,11 +167,12 @@
             document.getElementById('user-name').innerText = firstName;
             document.getElementById('profile-name').value = firstName;
             
-            // НОВЕ: Підтягуємо аватарку, якщо вона є у користувача
+            // Завантажуємо аватарку користувача
             if (tg.initDataUnsafe.user.photo_url) {
                 document.getElementById('user-avatar').src = tg.initDataUnsafe.user.photo_url;
             }
-            // ЗАВАНТАЖЕННЯ ПРОФІЛЮ
+
+            // Завантаження профілю
             fetch(`${getProfileWebhookUrl}?chat_id=${userId}`, { method: 'POST' })
                 .then(response => {
                     if (!response.ok) throw new Error("Помилка мережі");
@@ -193,8 +190,28 @@
                 })
                 .catch(error => console.error('Помилка профілю:', error));
                 
-            // ЗАВАНТАЖЕННЯ ІСТОРІЇ
+            // Завантаження історії
             loadFoodHistory();
+        }
+
+        // ==========================================
+        // НОВА ФУНКЦІЯ: Відображення Popup з Гіфкою
+        // ==========================================
+        function showSuccessGif(message) {
+            const popup = document.getElementById('success-popup');
+            document.getElementById('success-text').innerText = message;
+            
+            popup.style.display = 'flex'; // Показуємо вікно
+            
+            // Якщо телефон підтримує вібрацію - вібруємо!
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success'); 
+            }
+            
+            // Ховаємо рівно через 2.5 секунди
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 2500);
         }
 
         function loadFoodHistory() {
@@ -232,7 +249,6 @@
                     const newItem = document.createElement('div');
                     newItem.className = 'food-item';
                     
-                    // Ієрархія уваги: Назва велика, час - м'який сірий підзаголовок з міні-іконками
                     newItem.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                             <div style="display: flex; flex-direction: column;">
@@ -283,7 +299,7 @@
                     })
                 });
                 
-               if (response.ok) { 
+                if (response.ok) { 
                     document.getElementById('food').value = '';
                     loadFoodHistory(); 
                     
@@ -333,22 +349,7 @@
                 }
             } catch (e) { tg.showAlert("Помилка: " + e.message); } 
             finally { btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Зберегти профіль'; }
-
-            // Функція показу Гіфки
-        function showSuccessGif(message) {
-            const popup = document.getElementById('success-popup');
-            document.getElementById('success-text').innerText = message;
-            
-            popup.style.display = 'flex'; // Показуємо вікно
-            tg.HapticFeedback.notificationOccurred('success'); // Додаємо вібрацію успіху на телефоні!
-            
-            // Ховаємо рівно через 2.5 секунди
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 2500);
-        }
         }
     </script>
 </body>
 </html>
-

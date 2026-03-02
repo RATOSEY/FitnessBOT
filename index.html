@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <style>
         :root {
             --bg-color: var(--tg-theme-bg-color, #ffffff);
@@ -15,33 +17,48 @@
             --secondary-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
         }
 
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; padding-bottom: 70px; }
-        .header { padding: 20px; background: var(--secondary-bg); border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; margin-bottom: 20px; }
-        .header h1 { margin: 0; font-size: 24px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; padding-bottom: 80px; }
+        
+        .header { padding: 25px 20px; background: var(--secondary-bg); border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; margin-bottom: 25px; }
+        .header h1 { margin: 0; font-size: 24px; display: flex; align-items: center; gap: 8px; }
         .header p { margin: 5px 0 0 0; color: var(--hint-color); font-size: 14px; }
 
         .tab-content { display: none; padding: 0 20px; animation: fadeIn 0.3s ease-in-out; }
         .tab-content.active { display: block; }
-        .card { background: var(--secondary-bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        .card h3 { margin-top: 0; margin-bottom: 10px; }
+        
+        /* Оновлені картки: більше повітря, кругліші кути, м'яка рамка */
+        .card { 
+            background: var(--secondary-bg); 
+            padding: 20px; 
+            border-radius: 16px; 
+            margin-bottom: 20px; 
+            border: 1px solid rgba(153, 153, 153, 0.15);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+        .card h3 { margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-size: 18px; }
 
-        input, select { width: 100%; padding: 12px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid var(--hint-color); box-sizing: border-box; background: var(--bg-color); color: var(--text-color); font-size: 16px; }
-        label { font-size: 12px; color: var(--hint-color); font-weight: bold; }
-        button.primary-btn { background: var(--button-color); color: var(--button-text); border: none; padding: 14px; border-radius: 10px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; }
+        input, select { width: 100%; padding: 14px; margin: 8px 0 18px 0; border-radius: 12px; border: 1px solid rgba(153, 153, 153, 0.3); box-sizing: border-box; background: var(--bg-color); color: var(--text-color); font-size: 16px; transition: all 0.2s; }
+        input:focus, select:focus { border-color: var(--button-color); outline: none; }
+        label { font-size: 13px; color: var(--hint-color); font-weight: 600; }
+        
+        button.primary-btn { background: var(--button-color); color: var(--button-text); border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: opacity 0.2s; }
+        button.primary-btn:active { opacity: 0.8; }
 
-        /* Стилі для лайв-списку БЖУ */
-        .food-item { background: var(--bg-color); padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .food-item-title { font-weight: bold; margin-bottom: 8px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .food-item-macros { display: flex; justify-content: space-between; font-size: 12px; }
-        .macro-badge { padding: 4px 8px; border-radius: 6px; font-weight: bold; }
-        .macro-badge.protein { color: #e53935; background: rgba(229, 57, 53, 0.1); }
-        .macro-badge.fat { color: #fb8c00; background: rgba(251, 140, 0, 0.1); }
-        .macro-badge.carb { color: #1e88e5; background: rgba(30, 136, 229, 0.1); }
+        /* Оновлений список їжі */
+        .food-item { background: var(--bg-color); padding: 15px; border-radius: 14px; margin-bottom: 12px; border: 1px solid rgba(153, 153, 153, 0.15); }
+        .food-item-macros { display: flex; justify-content: space-between; font-size: 12px; margin-top: 12px; }
+        
+        /* Бейджі у вигляді "пігулок" (прозорий фон, кольорова рамка) */
+        .macro-badge { padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 11px; letter-spacing: 0.3px; }
+        .macro-badge.protein { color: #e53935; border: 1px solid rgba(229, 57, 53, 0.4); }
+        .macro-badge.fat { color: #fb8c00; border: 1px solid rgba(251, 140, 0, 0.4); }
+        .macro-badge.carb { color: #1e88e5; border: 1px solid rgba(30, 136, 229, 0.4); }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--secondary-bg); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid rgba(0,0,0,0.1); }
-        .nav-item { text-align: center; font-size: 12px; color: var(--hint-color); cursor: pointer; flex: 1; }
-        .nav-item.active { color: var(--button-color); font-weight: bold; }
-        .nav-item div { font-size: 20px; margin-bottom: 4px; }
+        /* Оновлене нижнє меню з іконками */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--secondary-bg); display: flex; justify-content: space-around; padding: 12px 0 20px 0; border-top: 1px solid rgba(153, 153, 153, 0.15); }
+        .nav-item { text-align: center; font-size: 11px; color: var(--hint-color); cursor: pointer; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 500; transition: color 0.2s; }
+        .nav-item.active { color: var(--button-color); font-weight: 600; }
+        .nav-item i { font-size: 24px; } /* Розмір іконок в меню */
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -49,14 +66,14 @@
 <body>
 
     <div class="header">
-        <h1>👋 Привіт, <span id="user-name">Друже</span>!</h1>
+        <h1><i class="ph ph-hand-waving"></i> Привіт, <span id="user-name">Друже</span>!</h1>
         <p>Готовий ставати кращим сьогодні?</p>
     </div>
 
     <div id="tab-profile" class="tab-content">
         <div class="card">
-            <h3>👤 Мій Профіль</h3>
-            <p style="color: var(--hint-color); font-size: 14px; margin-bottom: 15px;">Ці дані потрібні ШІ для точного розрахунку вашої норми.</p>
+            <h3><i class="ph ph-user-circle"></i> Мій Профіль</h3>
+            <p style="color: var(--hint-color); font-size: 14px; margin-bottom: 20px;">Ці дані потрібні ШІ для точного розрахунку вашої норми.</p>
             
             <label>Ім'я</label>
             <input type="text" id="profile-name" placeholder="Ваше ім'я">
@@ -76,13 +93,13 @@
             <label>Зріст (см)</label>
             <input type="number" id="profile-height" placeholder="Наприклад: 180">
             
-            <button class="primary-btn" onclick="saveProfile()">Зберегти профіль</button>
+            <button class="primary-btn" onclick="saveProfile()"><i class="ph ph-floppy-disk"></i> Зберегти профіль</button>
         </div>
     </div>
 
     <div id="tab-plan" class="tab-content">
         <div class="card">
-            <h3>🎯 Прогрес</h3>
+            <h3><i class="ph ph-trend-up"></i> Прогрес</h3>
             <canvas id="caloriesChart"></canvas>
             <p style="text-align: center; margin-top: 15px;"><b>Залишилось на сьогодні:</b> 1200 ккал</p>
         </div>
@@ -90,31 +107,31 @@
 
     <div id="tab-food" class="tab-content active">
         <div class="card">
-            <h3>🍎 Що ви з'їли?</h3>
-            <p style="font-size: 14px; color: var(--hint-color);">Напишіть страву, а ШІ сам визначить калорії та БЖУ!</p>
+            <h3><i class="ph ph-fork-knife"></i> Що ви з'їли?</h3>
+            <p style="font-size: 14px; color: var(--hint-color); margin-bottom: 15px;">Напишіть страву, а ШІ сам визначить калорії та БЖУ!</p>
             <input type="text" id="food" placeholder="Наприклад: 200г гречки і куряче філе">
-            <button class="primary-btn" onclick="sendToN8N()">Відправити ШІ 🪄</button>
+            <button class="primary-btn" onclick="sendToN8N()"><i class="ph ph-magic-wand"></i> Аналізувати ШІ</button>
         </div>
 
         <div class="card" id="macros-container" style="display: none;">
-            <h3>🍽️ Історія (останні 30):</h3>
+            <h3><i class="ph ph-clock-counter-clockwise"></i> Історія записів</h3>
             <div id="food-list"></div>
         </div>
     </div>
 
     <div id="tab-tips" class="tab-content">
         <div class="card">
-            <h3>💡 Порада дня</h3>
-            <p>Пийте більше води! Норма для дорослої людини - близько 30 мл на 1 кг ваги.</p>
-            <button class="primary-btn" style="background: transparent; color: var(--button-color); border: 2px solid var(--button-color);">Отримати нову пораду</button>
+            <h3><i class="ph ph-lightbulb"></i> Порада дня</h3>
+            <p style="line-height: 1.5;">Пийте більше води! Норма для дорослої людини - близько 30 мл на 1 кг ваги.</p>
+            <button class="primary-btn" style="background: transparent; color: var(--button-color); border: 1px solid var(--button-color); margin-top: 10px;"><i class="ph ph-arrows-clockwise"></i> Нова порада</button>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item" onclick="switchTab('profile', this)"><div>⚙️</div>Профіль</div>
-        <div class="nav-item" onclick="switchTab('plan', this)"><div>📊</div>Мій план</div>
-        <div class="nav-item active" onclick="switchTab('food', this)"><div>🍽️</div>Що їв</div>
-        <div class="nav-item" onclick="switchTab('tips', this)"><div>🧠</div>Поради</div>
+        <div class="nav-item" onclick="switchTab('profile', this)"><i class="ph ph-gear"></i>Профіль</div>
+        <div class="nav-item" onclick="switchTab('plan', this)"><i class="ph ph-chart-bar"></i>План</div>
+        <div class="nav-item active" onclick="switchTab('food', this)"><i class="ph ph-bowl-food"></i>Що їв</div>
+        <div class="nav-item" onclick="switchTab('tips', this)"><i class="ph ph-brain"></i>Поради</div>
     </div>
 
    <script>
@@ -124,11 +141,10 @@
         // ==========================================
         const webhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook/app-action'; 
         const getProfileWebhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook/get-profile'; 
-        // НОВИЙ ВЕБХУК ДЛЯ ІСТОРІЇ 👇
         const getHistoryWebhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook/get-history'; 
         // ==========================================
 
-        let userId = 12345; // Значення за замовчуванням для тестів у браузері
+        let userId = 12345; 
 
         if (tg.initDataUnsafe.user) {
             const firstName = tg.initDataUnsafe.user.first_name;
@@ -137,7 +153,7 @@
             document.getElementById('user-name').innerText = firstName;
             document.getElementById('profile-name').value = firstName;
 
-            // 1. ЗАВАНТАЖЕННЯ ПРОФІЛЮ
+            // ЗАВАНТАЖЕННЯ ПРОФІЛЮ
             fetch(`${getProfileWebhookUrl}?chat_id=${userId}`, { method: 'POST' })
                 .then(response => {
                     if (!response.ok) throw new Error("Помилка мережі");
@@ -155,13 +171,11 @@
                 })
                 .catch(error => console.error('Помилка профілю:', error));
                 
-            // 2. ЗАВАНТАЖЕННЯ ІСТОРІЇ ОДРАЗУ ПРИ ВІДКРИТТІ
+            // ЗАВАНТАЖЕННЯ ІСТОРІЇ
             loadFoodHistory();
         }
 
-        // Функція завантаження історії з бази
         function loadFoodHistory() {
-            // Використовуємо бронебійний варіант: передаємо chat_id в URL
             fetch(`${getHistoryWebhookUrl}?chat_id=${userId}`, {
                 method: 'POST'
             })
@@ -175,9 +189,8 @@
                 const list = document.getElementById('food-list');
                 const container = document.getElementById('macros-container');
                 
-                list.innerHTML = ''; // Очищаємо список перед оновленням
+                list.innerHTML = ''; 
 
-                // Якщо масив порожній - ховаємо історію
                 if (!data || data.length === 0 || data.message) {
                     container.style.display = 'none';
                     return;
@@ -190,25 +203,23 @@
                 history.forEach(item => {
                     if (!item.food_name) return; 
 
-                    // Форматуємо час і дату
                     const date = new Date(item.created_at);
                     const timeString = date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-                    // Додаємо дату (напр: 02.03), щоб не плутати сьогоднішню їжу з учорашньою
                     const dateString = date.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }); 
 
                     const newItem = document.createElement('div');
                     newItem.className = 'food-item';
                     
-                    // Новий дизайн з красивою плашкою часу, як на твоєму ескізі!
+                    // Ієрархія уваги: Назва велика, час - м'який сірий підзаголовок з міні-іконками
                     newItem.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                            <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                                <span style="background: var(--text-color); color: var(--bg-color); font-weight: 900; font-size: 13px; padding: 4px 8px; border-radius: 6px; margin-bottom: 6px; letter-spacing: 0.5px;">
-                                    ${dateString} о ${timeString}
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600; font-size: 16px;">${item.food_name}</span> 
+                                <span style="font-size: 12px; color: var(--hint-color); margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                                    <i class="ph ph-calendar-blank"></i> ${dateString} <span style="margin: 0 4px;">•</span> <i class="ph ph-clock"></i> ${timeString}
                                 </span>
-                                <span style="font-weight: bold; font-size: 16px;">${item.food_name}</span> 
                             </div>
-                            <span style="color: var(--button-color); font-weight: bold; font-size: 16px; padding-top: 4px;">
+                            <span style="color: var(--button-color); font-weight: 700; font-size: 16px;">
                                 ${item.calories} ккал
                             </span>
                         </div>
@@ -237,7 +248,7 @@
 
             if(!foodInput) { tg.showAlert("Будь ласка, напишіть що ви з'їли!"); return; }
 
-            btn.innerText = 'ШІ рахує... ⏳';
+            btn.innerHTML = '<i class="ph ph-spinner-gap"></i> Аналізую...';
 
             try {
                 const response = await fetch(webhookUrl, {
@@ -252,13 +263,12 @@
                 
                 if (response.ok) { 
                     document.getElementById('food').value = '';
-                    // Просто оновлюємо історію з бази, щоб підтягнувся точний час і всі 30 елементів
                     loadFoodHistory(); 
                 } else {
                     tg.showAlert("Помилка на сервері n8n");
                 }
             } catch (e) { tg.showAlert("Помилка: " + e.message); } 
-            finally { btn.innerText = 'Відправити ШІ 🪄'; }
+            finally { btn.innerHTML = '<i class="ph ph-magic-wand"></i> Аналізувати ШІ'; }
         }
 
         async function saveProfile() {
@@ -274,7 +284,7 @@
                 return;
             }
 
-            btn.innerText = 'Збереження... ⏳';
+            btn.innerHTML = '<i class="ph ph-spinner-gap"></i> Збереження...';
 
             try {
                 const response = await fetch(webhookUrl, {
@@ -296,11 +306,8 @@
                     tg.showAlert("Помилка при збереженні профілю");
                 }
             } catch (e) { tg.showAlert("Помилка: " + e.message); } 
-            finally { btn.innerText = 'Зберегти профіль'; }
+            finally { btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Зберегти профіль'; }
         }
     </script>
 </body>
 </html>
-
-
-

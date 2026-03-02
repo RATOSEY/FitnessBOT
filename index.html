@@ -161,15 +161,15 @@
 
         // Функція завантаження історії з бази
         function loadFoodHistory() {
-            fetch(getHistoryWebhookUrl, {
-                method: 'POST',
-                body: JSON.stringify({ chat_id: userId })
+            // Використовуємо бронебійний варіант: передаємо chat_id в URL
+            fetch(`${getHistoryWebhookUrl}?chat_id=${userId}`, {
+                method: 'POST'
             })
             .then(async response => {
                 if (!response.ok) throw new Error("Помилка мережі");
-                const text = await response.text(); // Читаємо відповідь як звичайний текст
-                if (!text) return []; // Якщо сервер повернув порожнечу - робимо порожній масив!
-                return JSON.parse(text); // Якщо там є дані - перетворюємо в JSON
+                const text = await response.text();
+                if (!text) return []; 
+                return JSON.parse(text); 
             })
             .then(data => {
                 const list = document.getElementById('food-list');
@@ -289,4 +289,5 @@
     </script>
 </body>
 </html>
+
 

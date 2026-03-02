@@ -117,15 +117,44 @@
         <div class="nav-item" onclick="switchTab('tips', this)"><div>🧠</div>Поради</div>
     </div>
 
-    <script>
+   <script>
         const tg = window.Telegram.WebApp;
         tg.expand(); // Розгортаємо додаток на весь екран
 
-        // Підтягуємо ім'я з Телеграму
+        // ==========================================
+        // ВАЖЛИВО: ВСТАВТЕ ВАШІ URL З N8N СЮДИ 👇
+        // Вебхук для збереження даних та запиту до ШІ
+        const webhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook-test/app-action'; 
+        // НОВИЙ вебхук (GET) для отримання профілю при відкритті
+        const getProfileWebhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook-test/get-profile'; 
+        // ==========================================
+
+        // Підтягуємо ім'я з Телеграму та базу даних
         if (tg.initDataUnsafe.user) {
             const firstName = tg.initDataUnsafe.user.first_name;
+            const userId = tg.initDataUnsafe.user.id;
+
+            // Базові значення з Telegram
             document.getElementById('user-name').innerText = firstName;
             document.getElementById('profile-name').value = firstName;
+
+            // ЗАВАНТАЖЕННЯ ДАНИХ З БАЗИ POSTGRES
+            fetch(`${getProfileWebhookUrl}?chat_id=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Якщо користувач знайдений у базі
+                    if (data && data.length > 0) {
+                        const profile = data[0];
+                        
+                        // Підставляємо збережені значення
+                        if (profile.name) document.getElementById('profile-name').value = profile.name;
+                        if (profile.age) document.getElementById('profile-age').value = profile.age;
+                        if (profile.gender) document.getElementById('profile-gender').value = profile.gender;
+                        if (profile.weight) document.getElementById('profile-weight').value = profile.weight;
+                        if (profile.height) document.getElementById('profile-height').value = profile.height;
+                    }
+                })
+                .catch(error => console.error('Помилка завантаження профілю з бази:', error));
         }
 
         // Логіка перемикання вкладок
@@ -135,11 +164,6 @@
             document.getElementById('tab-' + tabId).classList.add('active');
             element.classList.add('active');
         }
-
-        // ==========================================
-        // ВАЖЛИВО: ВСТАВТЕ ВАШ URL З N8N СЮДИ 👇
-        const webhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook-test/app-action'; 
-        // ==========================================
 
         // 1. Відправка Їжі та отримання БЖУ
         async function sendToN8N() {
@@ -171,7 +195,6 @@
                     const newItem = document.createElement('div');
                     newItem.className = 'food-item';
                     
-                    // Значення з n8n (або знаки питання, якщо даних немає)
                     const itemName = data.foodName || foodInput; 
                     const itemKcal = data.kcal || "?";
                     const p = data.protein || "?";
@@ -189,7 +212,7 @@
                             <span class="macro-badge carb">В: ${c}г</span>
                         </div>
                     `;
-                    list.insertBefore(newItem, list.firstChild); // Додаємо наверх списку
+                    list.insertBefore(newItem, list.firstChild);
                 } else {
                     tg.showAlert("Помилка на сервері n8n");
                 }
@@ -238,3 +261,4 @@
     </script>
 </body>
 </html>
+

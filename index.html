@@ -97,7 +97,7 @@
         </div>
 
         <div class="card" id="macros-container" style="display: none;">
-            <h3>🍽️ Додано сьогодні:</h3>
+            <h3>🍽️ Історія (останні 30):</h3>
             <div id="food-list"></div>
         </div>
     </div>
@@ -119,42 +119,32 @@
 
    <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Розгортаємо додаток на весь екран
+        tg.expand(); 
 
         // ==========================================
-        // ВАЖЛИВО: ВСТАВТЕ ВАШІ URL З N8N СЮДИ 👇
-        // Вебхук для збереження даних та запиту до ШІ
         const webhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook/app-action'; 
-        // НОВИЙ вебхук (GET) для отримання профілю при відкритті
         const getProfileWebhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook/get-profile'; 
+        // НОВИЙ ВЕБХУК ДЛЯ ІСТОРІЇ 👇
+        const getHistoryWebhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook/get-history'; 
         // ==========================================
 
-        // Підтягуємо ім'я з Телеграму та базу даних
+        let userId = 12345; // Значення за замовчуванням для тестів у браузері
+
         if (tg.initDataUnsafe.user) {
             const firstName = tg.initDataUnsafe.user.first_name;
-            const userId = tg.initDataUnsafe.user.id;
+            userId = tg.initDataUnsafe.user.id;
 
-            // Базові значення з Telegram
             document.getElementById('user-name').innerText = firstName;
             document.getElementById('profile-name').value = firstName;
 
-         // ЗАВАНТАЖЕННЯ ДАНИХ З БАЗИ POSTGRES (Бронебійний варіант)
-            // Ми передаємо chat_id в посиланні, але використовуємо POST для обходу ngrok
-            fetch(`${getProfileWebhookUrl}?chat_id=${userId}`, {
-                method: 'POST'
-            })
+            // 1. ЗАВАНТАЖЕННЯ ПРОФІЛЮ
+            fetch(`${getProfileWebhookUrl}?chat_id=${userId}`, { method: 'POST' })
                 .then(response => {
                     if (!response.ok) throw new Error("Помилка мережі");
                     return response.json();
                 })
                .then(data => {
-                    // Виводимо дані в консоль, щоб бачити, що саме прийшло з бази
-                    console.log("Отримані дані з бази:", data);
-                    
-                    // Робимо код "всеїдним": якщо це масив - беремо перший елемент, якщо об'єкт - беремо його
                     const profile = Array.isArray(data) ? data[0] : data;
-
-                    // Перевіряємо, чи профіль дійсно існує і чи є в ньому дані
                     if (profile && Object.keys(profile).length > 0) {
                         if (profile.name) document.getElementById('profile-name').value = profile.name;
                         if (profile.age) document.getElementById('profile-age').value = profile.age;
@@ -163,10 +153,66 @@
                         if (profile.height) document.getElementById('profile-height').value = profile.height;
                     }
                 })
-                .catch(error => console.error('Помилка завантаження профілю з бази:', error));
+                .catch(error => console.error('Помилка профілю:', error));
+                
+            // 2. ЗАВАНТАЖЕННЯ ІСТОРІЇ ОДРАЗУ ПРИ ВІДКРИТТІ
+            loadFoodHistory();
         }
 
-        // Логіка перемикання вкладок
+        // Функція завантаження історії з бази
+        function loadFoodHistory() {
+            fetch(getHistoryWebhookUrl, {
+                method: 'POST',
+                body: JSON.stringify({ chat_id: userId })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Помилка мережі");
+                return response.json();
+            })
+            .then(data => {
+                const list = document.getElementById('food-list');
+                const container = document.getElementById('macros-container');
+                
+                list.innerHTML = ''; // Очищаємо список перед оновленням
+
+                // Якщо база повернула порожнечу (або помилку 404), ховаємо контейнер
+                if (!data || data.length === 0 || data.message) {
+                    container.style.display = 'none';
+                    return;
+                }
+
+                container.style.display = 'block'; // Показуємо контейнер
+
+                const history = Array.isArray(data) ? data : [data];
+
+                history.forEach(item => {
+                    if (!item.food_name) return; 
+
+                    // Форматуємо час
+                    const date = new Date(item.created_at);
+                    const timeString = date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+
+                    const newItem = document.createElement('div');
+                    newItem.className = 'food-item';
+                    
+                    // Використовуємо твій красивий дизайн + додаємо час біля назви
+                    newItem.innerHTML = `
+                        <div class="food-item-title">
+                            <span>${item.food_name} <span style="font-size: 12px; color: var(--hint-color); font-weight: normal; margin-left: 8px;">⏰ ${timeString}</span></span> 
+                            <span style="color: var(--button-color);">${item.calories} ккал</span>
+                        </div>
+                        <div class="food-item-macros">
+                            <span class="macro-badge protein">Б: ${item.protein}г</span>
+                            <span class="macro-badge fat">Ж: ${item.fat}г</span>
+                            <span class="macro-badge carb">В: ${item.carbs}г</span>
+                        </div>
+                    `;
+                    list.appendChild(newItem);
+                });
+            })
+            .catch(error => console.error('Помилка історії:', error));
+        }
+
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -174,7 +220,6 @@
             element.classList.add('active');
         }
 
-        // 1. Відправка Їжі та отримання БЖУ
         async function sendToN8N() {
             const foodInput = document.getElementById('food').value;
             const btn = document.querySelector('#tab-food .primary-btn');
@@ -189,39 +234,15 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'add_food',
-                        chat_id: tg.initDataUnsafe.user?.id || 12345,
+                        chat_id: userId,
                         food: foodInput
                     })
                 });
                 
                 if (response.ok) { 
-                    const data = await response.json(); 
-                    
                     document.getElementById('food').value = '';
-                    document.getElementById('macros-container').style.display = 'block';
-                    
-                    const list = document.getElementById('food-list');
-                    const newItem = document.createElement('div');
-                    newItem.className = 'food-item';
-                    
-                    const itemName = data.foodName || foodInput; 
-                    const itemKcal = data.kcal || "?";
-                    const p = data.protein || "?";
-                    const f = data.fat || "?";
-                    const c = data.carbs || "?";
-
-                    newItem.innerHTML = `
-                        <div class="food-item-title">
-                            <span>${itemName}</span> 
-                            <span style="color: var(--button-color);">${itemKcal} ккал</span>
-                        </div>
-                        <div class="food-item-macros">
-                            <span class="macro-badge protein">Б: ${p}г</span>
-                            <span class="macro-badge fat">Ж: ${f}г</span>
-                            <span class="macro-badge carb">В: ${c}г</span>
-                        </div>
-                    `;
-                    list.insertBefore(newItem, list.firstChild);
+                    // Просто оновлюємо історію з бази, щоб підтягнувся точний час і всі 30 елементів
+                    loadFoodHistory(); 
                 } else {
                     tg.showAlert("Помилка на сервері n8n");
                 }
@@ -229,7 +250,6 @@
             finally { btn.innerText = 'Відправити ШІ 🪄'; }
         }
 
-        // 2. Збереження Профілю
         async function saveProfile() {
             const name = document.getElementById('profile-name').value;
             const age = document.getElementById('profile-age').value;
@@ -251,7 +271,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'save_profile',
-                        chat_id: tg.initDataUnsafe.user?.id || 12345,
+                        chat_id: userId,
                         name: name,
                         age: age,
                         gender: gender,
@@ -270,12 +290,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-

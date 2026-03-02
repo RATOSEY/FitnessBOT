@@ -138,15 +138,22 @@
             document.getElementById('user-name').innerText = firstName;
             document.getElementById('profile-name').value = firstName;
 
-           // ЗАВАНТАЖЕННЯ ДАНИХ З БАЗИ POSTGRES
-            fetch(`${getProfileWebhookUrl}?chat_id=${userId}`)
-                .then(response => response.json())
+          // ЗАВАНТАЖЕННЯ ДАНИХ З БАЗИ POSTGRES (Тепер через POST!)
+            fetch(getProfileWebhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ chat_id: userId }) // Передаємо ID в тілі запиту
+            })
+                .then(response => {
+                    // Перевіряємо, чи відповідь дійсно у форматі JSON
+                    if (!response.ok) throw new Error("Помилка мережі");
+                    return response.json();
+                })
                 .then(data => {
-                    // Якщо користувач знайдений у базі
                     if (data && data.length > 0) {
                         const profile = data[0];
-                        
-                        // Підставляємо збережені значення
                         if (profile.name) document.getElementById('profile-name').value = profile.name;
                         if (profile.age) document.getElementById('profile-age').value = profile.age;
                         if (profile.gender) document.getElementById('profile-gender').value = profile.gender;
@@ -261,6 +268,7 @@
     </script>
 </body>
 </html>
+
 
 
 

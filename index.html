@@ -138,8 +138,13 @@
             document.getElementById('user-name').innerText = firstName;
             document.getElementById('profile-name').value = firstName;
 
-            // ЗАВАНТАЖЕННЯ ДАНИХ З БАЗИ POSTGRES
-            fetch(`${getProfileWebhookUrl}?chat_id=${userId}`)
+           // ЗАВАНТАЖЕННЯ ДАНИХ З БАЗИ POSTGRES
+            fetch(`${getProfileWebhookUrl}?chat_id=${userId}`, {
+                method: 'GET',
+                headers: {
+                    'ngrok-skip-browser-warning': 'true' // Цей магічний рядок обходить блок ngrok
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     // Якщо користувач знайдений у базі
@@ -261,4 +266,5 @@
     </script>
 </body>
 </html>
+
 

@@ -165,9 +165,11 @@
                 method: 'POST',
                 body: JSON.stringify({ chat_id: userId })
             })
-            .then(response => {
+            .then(async response => {
                 if (!response.ok) throw new Error("Помилка мережі");
-                return response.json();
+                const text = await response.text(); // Читаємо відповідь як звичайний текст
+                if (!text) return []; // Якщо сервер повернув порожнечу - робимо порожній масив!
+                return JSON.parse(text); // Якщо там є дані - перетворюємо в JSON
             })
             .then(data => {
                 const list = document.getElementById('food-list');
@@ -175,27 +177,24 @@
                 
                 list.innerHTML = ''; // Очищаємо список перед оновленням
 
-                // Якщо база повернула порожнечу (або помилку 404), ховаємо контейнер
+                // Якщо масив порожній - ховаємо історію
                 if (!data || data.length === 0 || data.message) {
                     container.style.display = 'none';
                     return;
                 }
 
-                container.style.display = 'block'; // Показуємо контейнер
+                container.style.display = 'block';
 
                 const history = Array.isArray(data) ? data : [data];
 
                 history.forEach(item => {
                     if (!item.food_name) return; 
 
-                    // Форматуємо час
                     const date = new Date(item.created_at);
                     const timeString = date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
 
                     const newItem = document.createElement('div');
                     newItem.className = 'food-item';
-                    
-                    // Використовуємо твій красивий дизайн + додаємо час біля назви
                     newItem.innerHTML = `
                         <div class="food-item-title">
                             <span>${item.food_name} <span style="font-size: 12px; color: var(--hint-color); font-weight: normal; margin-left: 8px;">⏰ ${timeString}</span></span> 
@@ -290,3 +289,4 @@
     </script>
 </body>
 </html>
+

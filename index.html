@@ -152,10 +152,13 @@
         tg.expand(); 
 
         // ==========================================
-        const webhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook/app-action'; 
-        const getProfileWebhookUrl = 'https://foto-specialty-income-wedding.trycloudflare.com'; 
-        const getHistoryWebhookUrl = 'https://jalisa-uncrude-olene.ngrok-free.dev/webhook/get-history'; 
-        // ==========================================
+// Твоя нова постійна адреса через Cloudflare
+const baseUrl = 'https://n8n.ratosey.dev'; 
+
+const webhookUrl = `${baseUrl}/webhook/app-action`; 
+const getProfileWebhookUrl = `${baseUrl}/webhook/get-profile`; 
+const getHistoryWebhookUrl = `${baseUrl}/webhook/get-history`; 
+// ==========================================
 
         let userId = 12345; 
 

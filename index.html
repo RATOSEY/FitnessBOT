@@ -40,6 +40,17 @@
         
         button.primary-btn { background: var(--button-color); color: var(--button-text); border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: opacity 0.2s; }
         button.primary-btn:active { opacity: 0.8; }
+        button.primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Нові стилі для другорядної кнопки та сітки статистики (План) */
+        button.secondary-btn { background: transparent; color: var(--button-color); border: 1px solid var(--button-color); padding: 14px; border-radius: 12px; width: 100%; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s; }
+        button.secondary-btn:active { opacity: 0.6; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
+        .stat-box { background: var(--bg-color); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(153, 153, 153, 0.15); }
+        .stat-box .label { display: block; font-size: 12px; color: var(--hint-color); font-weight: 600; }
+        .stat-box .value { display: block; font-size: 20px; font-weight: bold; color: var(--button-color); margin-top: 5px; }
+        .stat-box.calories { grid-column: span 2; }
 
         .food-item { background: var(--bg-color); padding: 15px; border-radius: 14px; margin-bottom: 12px; border: 1px solid rgba(153, 153, 153, 0.15); }
         .food-item-macros { display: flex; justify-content: space-between; font-size: 12px; margin-top: 12px; }
@@ -96,8 +107,8 @@
             
             <label>Стать</label>
             <select id="profile-gender">
-                <option value="Чоловіча">Чоловіча</option>
-                <option value="Жіноча">Жіноча</option>
+                <option value="male">Чоловіча</option>
+                <option value="female">Жіноча</option>
             </select>
             
             <label>Вага (кг)</label>
@@ -111,10 +122,53 @@
     </div>
 
     <div id="tab-plan" class="tab-content">
-        <div class="card">
-            <h3><i class="ph ph-trend-up"></i> Прогрес</h3>
-            <canvas id="caloriesChart"></canvas>
-            <p style="text-align: center; margin-top: 15px;"><b>Залишилось на сьогодні:</b> 1200 ккал</p>
+        <div id="plan-form-card" class="card">
+            <h3><i class="ph ph-target"></i> Налаштування цілі</h3>
+            <p style="color: var(--hint-color); font-size: 14px; margin-bottom: 20px;">Оберіть ваші параметри для розрахунку ідеального плану</p>
+
+            <label>Ваша ціль:</label>
+            <select id="goal-select">
+                <option value="lose_weight">🔥 Схуднення (-15% ккал)</option>
+                <option value="maintain">⚖️ Підтримка ваги</option>
+                <option value="gain_weight">💪 Набір маси (+15% ккал)</option>
+            </select>
+
+            <label>Рівень активності:</label>
+            <select id="activity-select">
+                <option value="sedentary">💻 Сидячий (офіс, без спорту)</option>
+                <option value="light">🚶 Легкий (1-3 рази/тиж)</option>
+                <option value="moderate">🏃 Середній (3-5 разів/тиж)</option>
+                <option value="high">🏋️ Високий (важка робота, спорт щодня)</option>
+            </select>
+
+            <button id="generate-plan-btn" class="primary-btn" onclick="generatePlan()"><i class="ph ph-magic-wand"></i> Створити План</button>
+        </div>
+
+        <div id="plan-result-card" class="card" style="display: none;">
+            <h3><i class="ph ph-check-circle"></i> Ваш персональний план</h3>
+            <div class="stats-grid">
+                <div class="stat-box calories">
+                    <span class="label">Ккал/день</span>
+                    <span class="value" id="res-calories">0</span>
+                </div>
+                <div class="stat-box protein">
+                    <span class="label">Білки (г)</span>
+                    <span class="value" id="res-protein">0</span>
+                </div>
+                <div class="stat-box fat">
+                    <span class="label">Жири (г)</span>
+                    <span class="value" id="res-fat">0</span>
+                </div>
+                <div class="stat-box carbs">
+                    <span class="label">Вуглеводи (г)</span>
+                    <span class="value" id="res-carbs">0</span>
+                </div>
+                <div class="stat-box water">
+                    <span class="label">Вода (мл)</span>
+                    <span class="value" id="res-water">0</span>
+                </div>
+            </div>
+            <button class="secondary-btn" onclick="resetPlanForm()" style="margin-top: 15px;"><i class="ph ph-arrow-counter-clockwise"></i> Змінити параметри</button>
         </div>
     </div>
 
@@ -152,13 +206,14 @@
         tg.expand(); 
 
         // ==========================================
-// Твоя нова постійна адреса через Cloudflare
-const baseUrl = 'https://n8n.ratosey.dev'; 
+        // Твоя постійна адреса через Cloudflare
+        const baseUrl = 'https://n8n.ratosey.dev'; 
 
-const webhookUrl = `${baseUrl}/webhook/app-action`; 
-const getProfileWebhookUrl = `${baseUrl}/webhook/get-profile`; 
-const getHistoryWebhookUrl = `${baseUrl}/webhook/get-history`; 
-// ==========================================
+        const webhookUrl = `${baseUrl}/webhook/app-action`; 
+        const getProfileWebhookUrl = `${baseUrl}/webhook/get-profile`; 
+        const getHistoryWebhookUrl = `${baseUrl}/webhook/get-history`; 
+        const updatePlanWebhookUrl = `${baseUrl}/webhook/update-plan`; // Додано новий хук для плану
+        // ==========================================
 
         let userId = 12345; 
 
@@ -196,9 +251,7 @@ const getHistoryWebhookUrl = `${baseUrl}/webhook/get-history`;
             loadFoodHistory();
         }
 
-        // ==========================================
-        // НОВА ФУНКЦІЯ: Відображення Popup з Гіфкою
-        // ==========================================
+        // Відображення Popup з Гіфкою
         function showSuccessGif() {
             const popup = document.getElementById('success-popup');
             popup.style.display = 'flex'; 
@@ -300,11 +353,7 @@ const getHistoryWebhookUrl = `${baseUrl}/webhook/get-history`;
                 if (response.ok) { 
                     document.getElementById('food').value = '';
                     loadFoodHistory(); 
-                    
-                    // ВИКЛИКАЄМО НАШУ ГІФКУ! 🔥
-                   
-showSuccessGif();
-                    
+                    showSuccessGif();
                 } else {
                     tg.showAlert("Помилка на сервері n8n");
                 }
@@ -349,9 +398,69 @@ showSuccessGif();
             } catch (e) { tg.showAlert("Помилка: " + e.message); } 
             finally { btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Зберегти профіль'; }
         }
+
+        // ==========================================
+        // НОВІ ФУНКЦІЇ ДЛЯ ВКЛАДКИ "ПЛАН"
+        // ==========================================
+        async function generatePlan() {
+            const goal = document.getElementById('goal-select').value;
+            const activity = document.getElementById('activity-select').value;
+            const btn = document.getElementById('generate-plan-btn');
+            const formCard = document.getElementById('plan-form-card');
+            const resultCard = document.getElementById('plan-result-card');
+
+            // Перевірка, чи заповнений профіль перед генерацією плану
+            const weight = document.getElementById('profile-weight').value;
+            if(!weight) {
+                tg.showAlert("⚠️ Спочатку заповніть та збережіть свій Профіль (вага, зріст, вік)!");
+                switchTab('profile', document.querySelector('.bottom-nav .nav-item:nth-child(1)'));
+                return;
+            }
+
+            btn.innerHTML = '<i class="ph ph-spinner-gap"></i> Рахуємо...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(updatePlanWebhookUrl, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        telegram_id: userId,
+                        goal: goal,
+                        activity_level: activity
+                    })
+                });
+
+                if (!response.ok) throw new Error("Помилка сервера n8n");
+
+                const data = await response.json();
+
+                // Підставляємо отримані дані
+                document.getElementById('res-calories').innerText = data.target_calories;
+                document.getElementById('res-protein').innerText = data.target_protein;
+                document.getElementById('res-fat').innerText = data.target_fat;
+                document.getElementById('res-carbs').innerText = data.target_carbs;
+                document.getElementById('res-water').innerText = data.target_water_ml;
+
+                // Перемикаємо вигляд
+                formCard.style.display = 'none';
+                resultCard.style.display = 'block';
+
+                showSuccessGif(); // Викликаємо святкову гіфку
+                
+            } catch (error) {
+                console.error("Помилка:", error);
+                tg.showAlert("Сталася помилка при розрахунку. Перевірте з'єднання або дані профілю.");
+            } finally {
+                btn.innerHTML = '<i class="ph ph-magic-wand"></i> Створити План';
+                btn.disabled = false;
+            }
+        }
+
+        function resetPlanForm() {
+            document.getElementById('plan-result-card').style.display = 'none';
+            document.getElementById('plan-form-card').style.display = 'block';
+        }
     </script>
 </body>
 </html>
-
-
-
